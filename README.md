@@ -2,9 +2,11 @@
 
 ## Live Demo
 
-https://rafeeqhassani.github.io/expense-tracker-vanilla-js/
-
 https://magnificent-basbousa-106d89.netlify.app
+
+## Source Code
+
+https://github.com/rafeeqhassani/expense-tracker-vanilla-js
 
 ## About the Project
 
