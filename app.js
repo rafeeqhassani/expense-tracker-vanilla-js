@@ -108,19 +108,42 @@ function render() {
 
   elements.cardContainer.textContent = "";
 
+  const visible = getVisibleExpenses(filtered);
+
   if (state.expenses.length === 0) {
     elements.cardContainer.appendChild(renderMsg("No expenses added yet"));
   } else if (filtered.length === 0) {
     elements.cardContainer.appendChild(renderMsg("No expenses found"));
   } else {
-    getVisibleExpenses(filtered).forEach((expense) => {
+    visible.forEach((expense) => {
       elements.cardContainer.appendChild(renderExpenses(expense));
     });
   }
 
   elements.totalAmount.textContent = totalCalculate(state.expenses);
-
   elements.monthlyTotal.textContent = totalCalculate(filtered);
+
+  updateLoadMoreUI(filtered);
+}
+
+function updateLoadMoreUI(filtered) {
+  const total = filtered.length;
+  const visible = state.visibleCount;
+
+  if (total === 0) {
+    elements.loadMore.classList.add("hidden");
+    elements.loadMoreMessage.textContent = "No expenses to load";
+    return;
+  }
+
+  if (visible >= total) {
+    elements.loadMore.classList.add("hidden");
+    elements.loadMoreMessage.textContent = "No more data exist";
+    return;
+  }
+
+  elements.loadMore.classList.remove("hidden");
+  elements.loadMoreMessage.textContent = "";
 }
 
 function resetForm() {
@@ -210,7 +233,7 @@ function handleSubmit(e) {
     }
 
     const finalCategory =
-      state.formData.customCategory.trim() || state.formData.category;
+      state.formData.customCategory || state.formData.category;
 
     const newData = normalizedData({
       ...state.formData,
@@ -292,30 +315,10 @@ function handleInputChange(e) {
   state.formData[e.target.name] = e.target.value;
 }
 
-function updateLoadMoreUI() {
-  const filtered = getFilteredExpenses();
-
-  if (filtered.length === 0) {
-    elements.loadMore.classList.add("hidden");
-    elements.loadMoreMessage.textContent = "No expenses to load";
-    return;
-  }
-
-  if (state.visibleCount >= filtered.length) {
-    elements.loadMore.classList.add("hidden");
-    elements.loadMoreMessage.textContent = "All expenses loaded";
-    return;
-  }
-
-  elements.loadMore.classList.remove("hidden");
-  elements.loadMoreMessage.textContent = "";
-}
-
 function handleLoadMore() {
   state.visibleCount += 20;
 
   render();
-  updateLoadMoreUI();
 }
 
 function handleCategories() {

@@ -16,7 +16,7 @@ export function normalizedData(
     amount: Number.isFinite(parsedAmount) ? parsedAmount : 0,
     category: (data.customCategory || data.category).trim().toLowerCase(),
     date: isValidDate ? data.date : new Date().toISOString().split("T")[0],
-    selected: Boolean(existingSelected),
+    selected: existingSelected,
   };
 }
 
