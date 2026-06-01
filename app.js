@@ -8,324 +8,389 @@ import {
   sortExpenses,
   checkboxChange,
   clearSelectedExpenses,
-  createExpense,
   filterByMonth,
+  validateForm,
+  normalizedData,
+  isSameData,
 } from "./expense.js";
 import { saveToLocalStorage, getFromLocalStorage } from "./storage.js";
-import { renderExpenses, clearAllExpenses, renderMsgForFilter } from "./ui.js";
+import {
+  renderExpenses,
+  clearAllExpenses,
+  renderMsg,
+  createCategoryOptions,
+  toastMessage,
+} from "./ui.js";
 
-let expenses = getFromLocalStorage("expenses") || [];
+const elements = {
+  totalAmount: document.getElementById("totalAmount"),
+  monthlyTotal: document.getElementById("monthlyTotal"),
+  openForm: document.getElementById("openForm"),
+
+  searchInput: document.getElementById("searchExpenses"),
+  filterMonthSelect: document.getElementById("filterByMonth"),
+  sortSelection: document.getElementById("sortSelection"),
+
+  cardContainer: document.getElementById("cardContainer"),
+
+  loadMore: document.getElementById("loadMore"),
+  loadMoreMessage: document.getElementById("loadMoreMessage"),
+  clearSelected: document.getElementById("clearSelected"),
+  clearAll: document.getElementById("clearAll"),
+
+  formContainer: document.querySelector(".modal"),
+  form: document.getElementById("expenseForm"),
+  titleInput: document.getElementById("title"),
+  amountInput: document.getElementById("amount"),
+  selectCategory: document.getElementById("selectCategory"),
+  categoryInput: document.getElementById("customCategory"),
+  dateInput: document.getElementById("dateInput"),
+  closeForm: document.getElementById("closeForm"),
+  validateTitle: document.querySelector(".validate-title"),
+  validateAmount: document.querySelector(".validate-amount"),
+  validateCategory: document.querySelector(".validate-category"),
+  validateDate: document.querySelector(".validate-date"),
+  toastContainer: document.getElementById("toastContainer"),
+};
+
+const state = {
+  expenses: [],
+  visibleCount: 40,
+  filters: {
+    title: "",
+    month: "all",
+    sortBy: "latest",
+  },
+
+  formData: {
+    title: "",
+    amount: "",
+    category: "",
+    customCategory: "",
+    date: "",
+  },
+
+  isFormOpen: false,
+  mode: "add",
+  editingId: null,
+  errors: {},
+  isSubmitting: false,
+};
 
 try {
   const stored = getFromLocalStorage("expenses") || [];
-  expenses = stored.map((item) => ({
+
+  state.expenses = stored.map((item) => ({
     ...item,
     selected: typeof item.selected === "boolean" ? item.selected : false,
   }));
 } catch (error) {
-  console.error("Error loading expenses:", error);
-  expenses = [];
+  console.error(error);
+  state.expenses = [];
 }
 
-const elements = {
-  form: document.getElementById("expenseForm"),
-  titleInput: document.getElementById("title"),
-  amountInput: document.getElementById("amount"),
-  categoryInput: document.getElementById("category"),
-  dateInput: document.getElementById("dateInput"),
-  searchInput: document.getElementById("searchExpenses"),
-  filterMonthSelect: document.getElementById("filterByMonth"),
-  sortSelection: document.getElementById("sortSelection"),
-  monthlyTotal: document.getElementById("monthlyTotal"),
-  modalContainer: document.getElementById("modalContainer"),
-  modalMsg: document.getElementById("modalMsg"),
-  closeModal: document.getElementById("closeModal"),
-  container: document.getElementById("container"),
-  loadMore: document.getElementById("loadMore"),
-  clearChecked: document.getElementById("clearChecked"),
-  totalAmount: document.getElementById("totalAmount"),
-  clearAll: document.getElementById("clearAll"),
+function getFilteredExpenses() {
+  const searched = searchExpenses(state.expenses, state.filters.title);
+
+  const sorted = sortExpenses(searched, state.filters.sortBy);
+
+  return state.filters.month === "all"
+    ? sorted
+    : filterByMonth(sorted, Number(state.filters.month));
+}
+
+function getVisibleExpenses(data) {
+  return data.slice(0, state.visibleCount);
+}
+
+function render() {
+  const filtered = getFilteredExpenses();
+
+  elements.cardContainer.textContent = "";
+
+  if (state.expenses.length === 0) {
+    elements.cardContainer.appendChild(renderMsg("No expenses added yet"));
+  } else if (filtered.length === 0) {
+    elements.cardContainer.appendChild(renderMsg("No expenses found"));
+  } else {
+    getVisibleExpenses(filtered).forEach((expense) => {
+      elements.cardContainer.appendChild(renderExpenses(expense));
+    });
+  }
+
+  elements.totalAmount.textContent = totalCalculate(state.expenses);
+
+  elements.monthlyTotal.textContent = totalCalculate(filtered);
+}
+
+function resetForm() {
+  state.formData = {
+    title: "",
+    amount: "",
+    category: "",
+    customCategory: "",
+    date: "",
+  };
+
+  state.mode = "add";
+  state.editingId = null;
+  state.errors = {};
+
+  elements.form.reset();
+}
+
+function renderValidationErrors(errors) {
+  elements.validateTitle.textContent = errors.title || "";
+  elements.validateAmount.textContent = errors.amount || "";
+  elements.validateCategory.textContent = errors.category || "";
+  elements.validateDate.textContent = errors.date || "";
+}
+
+function clearValidationErrors() {
+  elements.validateTitle.textContent = "";
+  elements.validateAmount.textContent = "";
+  elements.validateCategory.textContent = "";
+  elements.validateDate.textContent = "";
+}
+
+function handleError(errors) {
+  state.errors = errors;
+  renderValidationErrors(errors);
+  showToastMessage("Please fix validation errors", "error");
+}
+
+function handleAdd(newData) {
+  state.errors = {};
+  clearValidationErrors();
+
+  state.expenses = addExpense(state.expenses, newData);
+  saveToLocalStorage("expenses", state.expenses);
+
+  commitSuccess("Expense added");
+}
+
+function handleUpdate(newData) {
+  const existingData = state.expenses.find(
+    (item) => item.id === state.editingId,
+  );
+
+  if (!existingData) {
+    return showToastMessage("Expense not found", "error");
+  }
+
+  if (isSameData(existingData, newData)) {
+    return showToastMessage("No changes detected", "info");
+  }
+
+  state.expenses = updateExpense(state.expenses, state.editingId, newData);
+
+  saveToLocalStorage("expenses", state.expenses);
+
+  commitSuccess("Expense updated");
+}
+
+function commitSuccess(message) {
+  resetForm();
+  handleCategories();
+  render();
+  showToastMessage(message, "success");
+}
+
+function handleSubmit(e) {
+  e.preventDefault();
+  console.log("Submit fired");
+  if (state.isSubmitting) return;
+  state.isSubmitting = true;
+
+  try {
+    const validationErrors = validateForm(state.formData);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return handleError(validationErrors);
+    }
+
+    const finalCategory =
+      state.formData.customCategory.trim() || state.formData.category;
+
+    const newData = normalizedData({
+      ...state.formData,
+      category: finalCategory,
+    });
+
+    if (state.mode === "add") {
+      return handleAdd(newData);
+    }
+
+    return handleUpdate(newData);
+  } finally {
+    state.isSubmitting = false;
+  }
+}
+
+const openForm = () => {
+  state.isFormOpen = true;
+  elements.formContainer.classList.remove("hidden");
 };
 
-elements.form.addEventListener("submit", handleSubmitBtn);
+const closeForm = () => {
+  state.isFormOpen = false;
+  elements.formContainer.classList.add("hidden");
+};
 
-elements.modalContainer.addEventListener("click", (e) => {
-  if (e.target.closest("#modalContainer")) {
-    elements.modalContainer.classList.remove("show", "error", "success");
+const showToastMessage = (message, type = "success") => {
+  const toast = toastMessage(message, type);
+  elements.toastContainer.appendChild(toast);
+};
+
+function handleDeleteExpense(id) {
+  state.expenses = deleteExpense(state.expenses, id);
+  saveToLocalStorage("expenses", state.expenses);
+  showToastMessage("Expense deleted", "success");
+  render();
+}
+
+function handleEditExpense(id) {
+  const expense = editExpense(state.expenses, id);
+
+  if (!expense) {
+    showToastMessage("Expense not found", "error");
+    return;
   }
-});
+
+  state.mode = "edit";
+  state.editingId = id;
+
+  state.formData = {
+    title: expense.title,
+    amount: String(expense.amount),
+    category: expense.category,
+    customCategory: "",
+    date: expense.date,
+  };
+
+  handleCategories();
+
+  elements.titleInput.value = state.formData.title;
+  elements.amountInput.value = state.formData.amount;
+  elements.dateInput.value = state.formData.date;
+
+  elements.selectCategory.value = state.formData.category;
+  elements.categoryInput.value = state.formData.customCategory;
+
+  state.errors = {};
+  clearValidationErrors();
+
+  openForm();
+}
+
+function handleFilterChange(e) {
+  state.filters[e.target.name] = e.target.value;
+  render();
+}
+
+function handleInputChange(e) {
+  state.formData[e.target.name] = e.target.value;
+}
+
+function updateLoadMoreUI() {
+  const filtered = getFilteredExpenses();
+
+  if (filtered.length === 0) {
+    elements.loadMore.classList.add("hidden");
+    elements.loadMoreMessage.textContent = "No expenses to load";
+    return;
+  }
+
+  if (state.visibleCount >= filtered.length) {
+    elements.loadMore.classList.add("hidden");
+    elements.loadMoreMessage.textContent = "All expenses loaded";
+    return;
+  }
+
+  elements.loadMore.classList.remove("hidden");
+  elements.loadMoreMessage.textContent = "";
+}
+
+function handleLoadMore() {
+  state.visibleCount += 20;
+
+  render();
+  updateLoadMoreUI();
+}
+
+function handleCategories() {
+  const categories = [...new Set(state.expenses.map((item) => item.category))];
+
+  elements.selectCategory.innerHTML =
+    '<option value="">Select category</option>';
+
+  categories.forEach((cat) => {
+    const option = createCategoryOptions(cat);
+
+    elements.selectCategory.appendChild(option);
+  });
+}
+
+function handleCheckboxChange(id, onCheckboxChange) {
+  state.expenses = checkboxChange(state.expenses, id, onCheckboxChange);
+
+  saveToLocalStorage("expenses", state.expenses);
+
+  render();
+}
+
+elements.form.addEventListener("submit", handleSubmit);
+elements.form.addEventListener("input", handleInputChange);
+elements.openForm.addEventListener("click", openForm);
+elements.closeForm.addEventListener("click", closeForm);
+elements.searchInput.addEventListener("input", handleFilterChange);
+
+elements.sortSelection.addEventListener("change", handleFilterChange);
+
+elements.filterMonthSelect.addEventListener("change", handleFilterChange);
 
 elements.loadMore.addEventListener("click", handleLoadMore);
+elements.clearSelected.addEventListener("click", () => {
+  state.expenses = clearSelectedExpenses(state.expenses);
+  saveToLocalStorage("expenses", state.expenses);
+  render();
+});
+
 elements.clearAll.addEventListener("click", () => {
-  expenses = clearAllExpenses();
-  saveToLocalStorage("expenses", expenses);
-  handleRenderExpenses(getVisibleExpenses(expenses));
+  state.expenses = clearAllExpenses();
+  saveToLocalStorage("expenses", state.expenses);
+  render();
 });
 
-elements.closeModal.addEventListener("click", (e) => {
-  const closeMsg = e.target.closest("#closeModal");
-  if (!closeMsg) return;
-
-  elements.modalContainer.classList.remove("show", "error", "success");
-});
-
-elements.clearChecked.addEventListener("click", () => {
-  expenses = clearSelectedExpenses(expenses);
-  saveToLocalStorage("expenses", expenses);
-  handleRenderExpenses(getVisibleExpenses(expenses));
-});
-
-elements.searchInput.addEventListener("input", handleSearchExpenses);
-elements.sortSelection.addEventListener("change", handleSortExpenses);
-elements.filterMonthSelect.addEventListener("change", handleFilterByMonth);
-
-elements.container.addEventListener("click", (e) => {
+elements.cardContainer.addEventListener("click", (e) => {
   const button = e.target.closest("button");
+
   if (!button) return;
+
   const id = button.dataset.id;
 
   if (button.classList.contains("delete-btn")) {
     handleDeleteExpense(id);
   }
+
   if (button.classList.contains("edit-btn")) {
     handleEditExpense(id);
   }
-  if (button.classList.contains("cancel-btn")) {
+
+  if (button.classList.contains("reset-btn")) {
     resetForm();
   }
 });
 
-elements.container.addEventListener("change", (e) => {
+elements.cardContainer.addEventListener("change", (e) => {
   const checkbox = e.target.closest("input[type='checkbox']");
+
   if (!checkbox) return;
-  const id = checkbox.dataset.id;
-  const isChecked = checkbox.checked;
+
   if (checkbox.classList.contains("select-expense")) {
-    handleCheckboxChange(id, isChecked);
+    handleCheckboxChange(checkbox.dataset.id, checkbox.checked);
   }
 });
 
-let visibleCount = 40;
-
-function getVisibleExpenses(expenses) {
-  return expenses.slice().reverse().slice(0, visibleCount);
-}
-
-function handleLoadMore() {
-  if (visibleCount >= expenses.length) {
-    elements.loadMore.style.display = "none";
-    return;
-  }
-  visibleCount += 20;
-  handleRenderExpenses(getVisibleExpenses(expenses));
-  if (visibleCount >= expenses.length) {
-    elements.loadMore.style.display = "none";
-  } else {
-    elements.loadMore.style.display = "block";
-  }
-}
-
-function handleRenderExpenses(data = expenses) {
-  elements.container.textContent = "";
-  if (data.length === 0 && elements.searchInput.value !== "") {
-    elements.container.classList.remove("message");
-    const showMsg = renderMsgForFilter(
-      `No expenses found for  "${elements.searchInput.value}"`,
-    );
-    elements.container.appendChild(showMsg);
-  }
-  data.forEach((exp) => {
-    const divElement = renderExpenses(exp);
-    elements.container.appendChild(divElement);
-  });
-  handleTotalCalculate(data);
-}
-
-function getInputsData() {
-  return {
-    title: elements.titleInput.value.trim(),
-    amount: elements.amountInput.value.trim(),
-    category: elements.categoryInput.value.trim(),
-    date: elements.dateInput.value,
-  };
-}
-
-function validateInputs(data) {
-  if (
-    data.title === "" ||
-    data.amount === "" ||
-    data.category === "" ||
-    data.date === ""
-  )
-    return {
-      type: "error",
-      message: "Please fill in all fields correctly",
-    };
-
-  const amount = Number(data.amount);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return { type: "error", message: "Amount must be greater than 0" };
-  }
-  return { type: "success" };
-}
-
-const state = {
-  mode: "add",
-  editingId: null,
-};
-
-function handleSubmitBtn(e) {
-  e.preventDefault();
-
-  const button = e.target.querySelector("button[type='submit']");
-  if (button.disabled) return;
-  button.disabled = true;
-
-  try {
-    const userData = getInputsData();
-    const validation = validateInputs(userData);
-    if (validation.type === "error") {
-      showModal(validation.message, "error");
-      return;
-    }
-
-    if (state.mode === "add") {
-      handleAddExpense(userData);
-      showModal("Expense added", "success");
-      handleRenderExpenses(getVisibleExpenses(expenses));
-      resetForm();
-      return;
-    }
-
-    const oldData = expenses.find((item) => item.id === state.editingId);
-    if (!oldData) {
-      showModal("No data found", "error");
-      return;
-    }
-
-    const isChanged = isDataChanged(oldData, userData);
-    if (isChanged) {
-      showModal("No changes made", "error");
-      return;
-    }
-
-    handleUpdateExpense(state.editingId, userData);
-    showModal("Expense updated", "success");
-    state.mode = "add";
-    state.editingId = null;
-
-    handleRenderExpenses(getVisibleExpenses(expenses));
-    resetForm();
-  } finally {
-    setTimeout(() => {
-      button.disabled = false;
-    }, 0);
-  }
-}
-
-function handleAddExpense(userData) {
-  const processedData = createExpense(userData);
-  expenses = addExpense(expenses, processedData);
-  saveToLocalStorage("expenses", expenses);
-}
-
-function handleDeleteExpense(id) {
-  expenses = deleteExpense(expenses, id);
-  saveToLocalStorage("expenses", expenses);
-  handleRenderExpenses(getVisibleExpenses(expenses));
-}
-
-function handleEditExpense(id) {
-  const item = editExpense(expenses, id);
-  if (!item) return;
-  state.mode = "edit";
-  state.editingId = id;
-  elements.titleInput.value = item.title || "";
-  elements.amountInput.value = item.amount || "";
-  elements.categoryInput.value = item.category || "";
-  elements.dateInput.value = item.date || "";
-}
-
-function resetForm() {
-  elements.titleInput.value = "";
-  elements.amountInput.value = "";
-  elements.categoryInput.value = "";
-  elements.dateInput.value = "";
-  state.mode = "add";
-  state.editingId = null;
-}
-
-function handleCheckboxChange(id, isChecked) {
-  expenses = checkboxChange(expenses, id, isChecked);
-  saveToLocalStorage("expenses", expenses);
-  handleRenderExpenses(getVisibleExpenses(expenses));
-}
-
-function handleUpdateExpense(editingId, userData) {
-  if (!editingId) return;
-  const processedData = createExpense(userData, editingId, false);
-  expenses = updateExpense(expenses, editingId, processedData);
-  saveToLocalStorage("expenses", expenses);
-}
-
-function isDataChanged(oldData, newData) {
-  return (
-    oldData.title === newData.title &&
-    Number(oldData.amount) === Number(newData.amount) &&
-    oldData.category === newData.category &&
-    oldData.date === newData.date
-  );
-}
-
-function handleSearchExpenses() {
-  const searchExpense = elements.searchInput.value;
-  const filtered = searchExpenses(expenses, searchExpense);
-  handleRenderExpenses(getVisibleExpenses(filtered));
-  if (searchExpense !== "" && filtered.length === 0) {
-    elements.container.classList.add("message");
-  } else {
-    elements.container.classList.remove("message");
-  }
-}
-
-function handleSortExpenses() {
-  const sortBy = elements.sortSelection.value;
-  const sortedExpenses = sortExpenses(expenses, sortBy);
-  handleRenderExpenses(getVisibleExpenses(sortedExpenses));
-}
-
-function handleFilterByMonth() {
-  const selectedMonth = elements.filterMonthSelect.value.trim().toLowerCase();
-  const filteredExpenses =
-    selectedMonth === "all"
-      ? expenses
-      : filterByMonth(expenses, Number(selectedMonth));
-  const totalByMonth = filteredExpenses.reduce(
-    (sum, item) => sum + item.amount,
-    0,
-  );
-  elements.monthlyTotal.textContent = totalByMonth;
-  handleRenderExpenses(getVisibleExpenses(filteredExpenses));
-}
-
-let modalTimeout = null;
-function showModal(message, type) {
-  elements.modalMsg.textContent = message;
-  elements.modalContainer.classList.add("show");
-  elements.modalContainer.classList.remove("error", "success");
-  elements.modalContainer.classList.add(type);
-
-  if (modalTimeout) clearTimeout(modalTimeout);
-  modalTimeout = setTimeout(() => {
-    elements.modalMsg.textContent = "";
-    elements.modalContainer.classList.remove("show", "error", "success");
-    modalTimeout = null;
-  }, 3000);
-}
-
-function handleTotalCalculate(data = expenses) {
-  const total = totalCalculate(data);
-  elements.totalAmount.textContent = total;
-}
-
-handleRenderExpenses(getVisibleExpenses(expenses));
+handleCategories();
+render();

@@ -3,18 +3,18 @@ export function addExpense(expenses, newExpense) {
   return added.slice(-500);
 }
 
-export function createExpense(
+export function normalizedData(
   data,
   existingId = null,
   existingSelected = false,
 ) {
-  const parsedAmount = Number(data.amount);
+  const parsedAmount = Number(String(data.amount).trim());
   const isValidDate = data.date && !isNaN(Date.parse(data.date));
   return {
     id: existingId || crypto.randomUUID(),
-    title: data.title,
+    title: data.title.trim(),
     amount: Number.isFinite(parsedAmount) ? parsedAmount : 0,
-    category: data.category.toLowerCase(),
+    category: (data.customCategory || data.category).trim().toLowerCase(),
     date: isValidDate ? data.date : new Date().toISOString().split("T")[0],
     selected: Boolean(existingSelected),
   };
@@ -35,9 +35,34 @@ export function editExpense(expenses, id) {
   return expenses.find((item) => item.id === id);
 }
 
-export function checkboxChange(expenses, id, isChecked) {
+export function validateForm(formData) {
+  const validationErrors = {};
+
+  if (!formData.title.trim()) {
+    validationErrors.title = "Title is required";
+  }
+
+  if (!formData.amount || Number(formData.amount) <= 0) {
+    validationErrors.amount = "Amount must be positive";
+  }
+
+  const finalCategory =
+    formData.customCategory.trim() || formData.category.trim();
+
+  if (!finalCategory) {
+    validationErrors.category = "Please select or enter a category";
+  }
+
+  if (!formData.date) {
+    validationErrors.date = "Date is required";
+  }
+
+  return validationErrors;
+}
+
+export function checkboxChange(expenses, id, onCheckboxChange) {
   return expenses.map((item) =>
-    item.id === id ? { ...item, selected: isChecked } : item,
+    item.id === id ? { ...item, selected: onCheckboxChange } : item,
   );
 }
 
@@ -50,27 +75,43 @@ export function updateExpense(expenses, editingId, newData) {
 export function searchExpenses(expenses, searchExpense) {
   const inputText = searchExpense.trim().toLowerCase();
 
-  return expenses.filter((expense) => {
-    return (
-      expense.title.toLowerCase().includes(inputText) ||
-      expense.amount.toString().includes(inputText) ||
-      expense.category.toLowerCase().includes(inputText)
-    );
-  });
+  return expenses.filter((expense) =>
+    expense.title.toLowerCase().includes(inputText),
+  );
 }
 
 export function sortExpenses(expenses, sortBy) {
   const sorted = [...expenses];
-  if (sortBy === "smallest") {
-    sorted.sort((a, b) => b.amount - a.amount);
-  } else if (sortBy === "largest") {
-    sorted.sort((a, b) => a.amount - b.amount);
-  } else if (sortBy === "title-ascending") {
-    sorted.sort((a, b) => b.title.localeCompare(a.title));
-  } else if (sortBy === "title-descending") {
-    sorted.sort((a, b) => a.title.localeCompare(b.title));
+
+  switch (sortBy) {
+    case "latest":
+      return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    case "smallest":
+      return sorted.sort((a, b) => a.amount - b.amount);
+
+    case "largest":
+      return sorted.sort((a, b) => b.amount - a.amount);
+
+    case "title-ascending":
+      return sorted.sort((a, b) => a.title.localeCompare(b.title));
+
+    case "title-descending":
+      return sorted.sort((a, b) => b.title.localeCompare(a.title));
+
+    default:
+      return sorted;
   }
-  return sorted;
+}
+
+export function isSameData(oldData, newData) {
+  return (
+    oldData.title === newData.title &&
+    Number(oldData.amount) === Number(newData.amount) &&
+    (oldData.category || "").trim().toLowerCase() ===
+      (newData.category || "").trim().toLowerCase() &&
+    oldData.date === newData.date
+  );
 }
 
 export function clearSelectedExpenses(expenses) {

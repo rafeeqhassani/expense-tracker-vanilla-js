@@ -1,22 +1,32 @@
 export function renderExpenses(expense) {
   if (!expense) return null;
   const div = document.createElement("div");
-  div.classList.add("list-item");
+  div.classList.add("expense-card");
   if (expense.amount > 1000) {
     div.classList.add("expensive");
   }
+
   const infoContainer = document.createElement("div");
   infoContainer.classList.add("info-container");
+
   const h3 = document.createElement("h3");
   h3.textContent = expense.title;
+
+  const amount = document.createElement("span");
+  amount.textContent = `Rs ${expense.amount}`;
+  amount.classList.add("amount");
+
   const metaElements = document.createElement("p");
   metaElements.classList.add("meta-info");
+
   const categorySpan = document.createElement("span");
   categorySpan.textContent = expense.category;
   categorySpan.classList.add("category");
+
   const dotSpan = document.createElement("span");
   dotSpan.textContent = " . ";
   dotSpan.classList.add("dot");
+
   const dateSpan = document.createElement("span");
   dateSpan.textContent = new Date(expense.date).toLocaleDateString("en-GB");
   dateSpan.classList.add("date");
@@ -27,49 +37,67 @@ export function renderExpenses(expense) {
 
   const actionContainer = document.createElement("div");
   actionContainer.classList.add("action-container");
-  const amount = document.createElement("span");
-  amount.textContent = `Rs ${expense.amount}`;
-  amount.classList.add("amount");
 
-  const actionRight = document.createElement("div");
-  actionRight.classList.add("action-right");
   const deleteBtn = document.createElement("button");
   deleteBtn.textContent = "X";
   deleteBtn.classList.add("delete-btn");
   deleteBtn.dataset.id = expense.id;
+
   const cancelBtn = document.createElement("button");
-  cancelBtn.textContent = "Cancel";
-  cancelBtn.classList.add("cancel-btn");
+  cancelBtn.textContent = "Reset";
+  cancelBtn.classList.add("reset-btn");
   cancelBtn.dataset.id = expense.id;
+
   const editBtn = document.createElement("button");
   editBtn.textContent = "Edit";
   editBtn.dataset.id = expense.id;
   editBtn.classList.add("edit-btn");
+
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.classList.add("select-expense");
   checkbox.dataset.id = expense.id;
   checkbox.checked = expense.selected || false;
+
   infoContainer.appendChild(h3);
+  infoContainer.appendChild(amount);
   infoContainer.appendChild(metaElements);
 
-  actionContainer.appendChild(amount);
-  actionRight.appendChild(deleteBtn);
-  actionRight.appendChild(editBtn);
-  actionRight.appendChild(cancelBtn);
-  actionRight.appendChild(checkbox);
-  actionContainer.appendChild(actionRight);
+  actionContainer.appendChild(deleteBtn);
+  actionContainer.appendChild(editBtn);
+  actionContainer.appendChild(cancelBtn);
+  actionContainer.appendChild(checkbox);
 
   div.appendChild(infoContainer);
   div.appendChild(actionContainer);
   return div;
 }
 
-export function renderMsgForFilter(message) {
+export function renderMsg(message) {
   const p = document.createElement("p");
-  p.className = "message-box message";
+  p.classList.add("empty-message");
   p.textContent = message;
   return p;
+}
+
+export function toastMessage(message, type = "success") {
+  const toast = document.createElement("div");
+
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+
+  setTimeout(() => {
+    toast.remove();
+  }, 2500);
+
+  return toast;
+}
+
+export function createCategoryOptions(category) {
+  const option = document.createElement("option");
+  option.value = category;
+  option.textContent = category;
+  return option;
 }
 
 export function clearAllExpenses() {

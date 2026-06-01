@@ -10,54 +10,98 @@ https://github.com/rafeeqhassani/expense-tracker-vanilla-js
 
 ## About the Project
 
-A web-based Expense Tracker Application that helps users manage daily and monthly expenses in an efficient and organized way.
+Expense Tracker is a Vanilla JavaScript application for managing daily and monthly expenses.
 
-Users can add, edit, delete, search, sort, and filter expenses, with real-time total calculation and persistent storage using LocalStorage.
+Users can add, edit, delete, search, sort, and filter expenses while tracking total spending in real time. All data is persisted using LocalStorage.
 
-This project was built through hands-on learning and problem-solving practice, focusing on understanding core JavaScript concepts and real-world application logic.
+This project was built as part of my JavaScript learning journey. Initially, the application relied heavily on global variables and scattered state management. After learning React and understanding state-driven UI architecture, I refactored the entire Vanilla JavaScript version to follow a more structured state-based approach.
+
+The goal of the refactor was to make the code easier to understand, maintain, debug, and extend while keeping the project framework-free.
 
 ## Features
 
-- [x] Add, edit, and delete expenses
-- [x] Auto-remove expenses above 500
-- [x] Load More pagination (40 items per batch)
-- [x] Search expenses by title, amount, and category
-- [x] Sort expenses (alphabetical & numeric)
-- [x] Filter expenses by month
-- [x] Category-based management
-- [x] Real-time total calculation
-- [x] Form validation (prevents invalid inputs)
-- [x] LocalStorage persistence
-- [x] Dynamic UI updates
-- [x] Bulk selection & removal
+- Add, edit, and delete expenses
+- Keeps only the latest 500 expenses
+- Load More pagination (40 initial items, +20 per click)
+- Search expenses by title
+- Sort expenses by date, amount, and title
+- Filter expenses by month
+- Select existing categories or create custom categories
+- Real-time total and filtered total calculations
+- Form validation
+- LocalStorage persistence
+- Dynamic UI rendering
+- Bulk selection and removal of expenses
+
+## Architecture
+
+The application is organized into separate modules:
+
+### app.js
+
+Handles application state, event listeners, user interactions, and rendering flow.
+
+### expense.js
+
+Contains pure business logic functions such as:
+
+- Add expense
+- Update expense
+- Delete expense
+- Validation
+- Search
+- Sort
+- Filter
+- Data normalization
+
+### storage.js
+
+Handles LocalStorage persistence.
+
+### ui.js
+
+Contains DOM rendering utilities and reusable UI helpers.
 
 ## Technologies Used
 
 - HTML5
 - CSS3
-- JavaScript (Vanilla JS)
-
-## Project Status
-
-Core functionality is complete.
-UI improvements and advanced features are currently in progress.
+- JavaScript (ES Modules)
+- LocalStorage
 
 ## What I Learned
 
-Deep understanding of JavaScript logic and DOM manipulation
-State management without frameworks
-Debugging using DevTools, console logs, and breakpoints
-Handling real-world application structure
-Improving problem-solving through project-based learning
+- DOM manipulation and event handling
+- State-driven UI architecture without frameworks
+- Separating business logic from UI logic
+- Data normalization and validation
+- CRUD application design
+- LocalStorage persistence
+- Debugging with DevTools, breakpoints, and console tracing
+- Refactoring existing code for better maintainability
+- Applying React-inspired state management concepts in Vanilla JavaScript
+
+## Project Status
+
+Current version is fully functional and actively maintained.
+
+Recent refactors focused on:
+
+- State-driven architecture
+- Improved form handling
+- Better code organization
+- Separation of concerns
 
 ## Future Improvements
 
-Better UI/UX redesign
-Charts for expense analytics
-Category-wise spending breakdown
-Export to CSV/PDF
-Dark mode support
+- Improved UI/UX design
+- Expense analytics and charts
+- Category-wise spending reports
+- CSV/PDF export
+- Dark mode
+- Responsive mobile improvements
+- Automated testing
 
 ## Note
 
-This project was built through consistent practice and self-learning over ~1.5–2 months, focusing on understanding rather than copying code.
+This project was built through consistent self-learning and hands-on practice. The focus was not only on implementing features but also on understanding the reasoning behind the code, debugging real problems, and continuously refactoring the architecture as my JavaScript knowledge improved.
