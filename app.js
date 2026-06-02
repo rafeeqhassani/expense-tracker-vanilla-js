@@ -214,14 +214,16 @@ function handleUpdate(newData) {
 
 function commitSuccess(message) {
   resetForm();
+
   handleCategories();
   render();
   showToastMessage(message, "success");
+  closeForm();
 }
 
 function handleSubmit(e) {
   e.preventDefault();
-  console.log("Submit fired");
+
   if (state.isSubmitting) return;
   state.isSubmitting = true;
 
@@ -229,7 +231,8 @@ function handleSubmit(e) {
     const validationErrors = validateForm(state.formData);
 
     if (Object.keys(validationErrors).length > 0) {
-      return handleError(validationErrors);
+      handleError(validationErrors);
+      return;
     }
 
     const finalCategory =
