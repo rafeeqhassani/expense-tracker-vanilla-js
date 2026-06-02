@@ -1,20 +1,21 @@
 export function renderExpenses(expense) {
   if (!expense) return null;
+
   const div = document.createElement("div");
   div.classList.add("expense-card");
   if (expense.amount > 1000) {
     div.classList.add("expensive");
   }
 
-  const infoContainer = document.createElement("div");
-  infoContainer.classList.add("info-container");
-
-  const h3 = document.createElement("h3");
-  h3.textContent = expense.title;
-
   const amount = document.createElement("span");
   amount.textContent = `Rs ${expense.amount}`;
   amount.classList.add("amount");
+
+  const infoContainer = document.createElement("div");
+  infoContainer.classList.add("info-container");
+
+  const h4 = document.createElement("h4");
+  h4.textContent = expense.title;
 
   const metaElements = document.createElement("p");
   metaElements.classList.add("meta-info");
@@ -59,16 +60,18 @@ export function renderExpenses(expense) {
   checkbox.dataset.id = expense.id;
   checkbox.checked = expense.selected || false;
 
-  infoContainer.appendChild(h3);
-  infoContainer.appendChild(amount);
+  infoContainer.appendChild(h4);
+
   infoContainer.appendChild(metaElements);
 
   actionContainer.appendChild(deleteBtn);
   actionContainer.appendChild(editBtn);
   actionContainer.appendChild(cancelBtn);
-  actionContainer.appendChild(checkbox);
 
+  div.appendChild(checkbox);
   div.appendChild(infoContainer);
+
+  div.appendChild(amount);
   div.appendChild(actionContainer);
   return div;
 }

@@ -12,22 +12,52 @@ body {
   font-family: "Inter", sans-serif;
 }
 
-main {
+main,
+form {
   display: grid;
+  grid-template-rows: auto auto 1fr auto;
   margin: 0 auto;
   max-width: 800px;
   gap: 1rem;
   background-color: white;
-  padding: 1rem;
+  padding: 0 16px;
 }
 
-form {
-  display: grid;
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.filters {
+  display: flex;
   gap: 0.8rem;
-  margin: 0 auto;
-  max-width: 800px;
-  background-color: white;
-  padding: 1rem;
+  flex-wrap: wrap;
+}
+
+.expense-card {
+  display: grid;
+  grid-template-columns: auto 2fr 1fr auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.actions-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.message {
+  flex: 1;
+  text-align: center;
+}
+
+.amount {
+  font-size: bold;
+  font-size: 1.1rem;
 }
 
 #toastContainer {

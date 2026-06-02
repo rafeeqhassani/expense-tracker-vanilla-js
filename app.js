@@ -288,7 +288,7 @@ function handleEditExpense(id) {
 
   state.formData = {
     title: expense.title,
-    amount: String(expense.amount),
+    amount: expense.amount,
     category: expense.category,
     customCategory: "",
     date: expense.date,

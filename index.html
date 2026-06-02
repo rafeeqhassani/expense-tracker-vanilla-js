@@ -15,8 +15,8 @@
       <section class="app-header">
         <h1>Expense Tracker</h1>
         <div class="summary">
-          <h3>Total expenses: <span id="totalAmount">0</span></h3>
-          <h3>Monthl total: <span id="monthlyTotal">0</span></h3>
+          <h4>Total: <span id="totalAmount">0</span></h4>
+          <h4>Monthly: <span id="monthlyTotal">0</span></h4>
         </div>
         <button id="openForm">Add new expense</button>
       </section>
@@ -58,9 +58,11 @@
       <section id="cardContainer" class="list-container"></section>
 
       <section class="actions-bar">
-        <div class="button-group">
+        <div class="left">
           <button type="button" id="loadMore" class="hidden">Load more</button>
-          <p id="loadMoreMessage"></p>
+        </div>
+        <p id="loadMoreMessage"></p>
+        <div class="right">
           <button type="button" id="clearSelected">Clear selected</button>
           <button type="button" id="clearAll">Clear all</button>
         </div>
