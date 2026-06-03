@@ -18,41 +18,47 @@
           <h4>Total: <span id="totalAmount">0</span></h4>
           <h4>Monthly: <span id="monthlyTotal">0</span></h4>
         </div>
-        <button id="openForm">Add new expense</button>
+        <button id="openForm" class="open-form">Add new expense</button>
       </section>
 
       <section class="filters">
-        <label for="searchExpenses">Search</label>
-        <input
-          type="text"
-          id="searchExpenses"
-          name="title"
-          placeholder="Search by title..."
-        />
-        <label for="filterByMonth">Filter by month</label>
-        <select id="filterByMonth" name="month">
-          <option value="all">All Months</option>
-          <option value="1">January</option>
-          <option value="2">February</option>
-          <option value="3">March</option>
-          <option value="4">April</option>
-          <option value="5">May</option>
-          <option value="6">June</option>
-          <option value="7">July</option>
-          <option value="8">August</option>
-          <option value="9">September</option>
-          <option value="10">October</option>
-          <option value="11">November</option>
-          <option value="12">December</option>
-        </select>
-        <label for="sortSelection">Sort by </label>
-        <select id="sortSelection" name="sortBy">
-          <option value="latest">Date: Newest &#8594; Oldest</option>
-          <option value="smallest">Amount: Smallest &#8594; Largest</option>
-          <option value="largest">Amount: Largest &#8594; Smallest</option>
-          <option value="title-ascending">Title: A &#8594; Z</option>
-          <option value="title-descending">Title: Z &#8594; A</option>
-        </select>
+        <div class="field">
+          <label for="searchExpenses">Search</label>
+          <input
+            type="text"
+            id="searchExpenses"
+            name="title"
+            placeholder="Search by title..."
+          />
+        </div>
+        <div class="field">
+          <label for="filterByMonth">Filter by month</label>
+          <select id="filterByMonth" name="month">
+            <option value="all">All Months</option>
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sortSelection">Sort by </label>
+          <select id="sortSelection" name="sortBy">
+            <option value="latest">Date: Newest &#8594; Oldest</option>
+            <option value="smallest">Amount: Smallest &#8594; Largest</option>
+            <option value="largest">Amount: Largest &#8594; Smallest</option>
+            <option value="title-ascending">Title: A &#8594; Z</option>
+            <option value="title-descending">Title: Z &#8594; A</option>
+          </select>
+        </div>
       </section>
 
       <section id="cardContainer" class="list-container"></section>
@@ -61,7 +67,7 @@
         <div class="left">
           <button type="button" id="loadMore" class="hidden">Load more</button>
         </div>
-        <p id="loadMoreMessage"></p>
+        <p id="loadMoreMessage" class="message"></p>
         <div class="right">
           <button type="button" id="clearSelected">Clear selected</button>
           <button type="button" id="clearAll">Clear all</button>
@@ -93,17 +99,24 @@
           <small class="validate-amount"></small>
         </div>
 
-        <div class="field">
-          <label for="selectCategory">Select category</label>
-          <select id="selectCategory" name="category"></select>
-          <label for="customCategory">Category</label>
-          <input
-            type="text"
-            id="customCategory"
-            name="customCategory"
-            class="category-input"
-            placeholder="Enter custom category"
-          />
+        <div class="category-field">
+          <div class="input-group">
+            <div class="field">
+              <label for="selectCategory">Select category</label>
+              <select id="selectCategory" name="category"></select>
+            </div>
+            <div class="field">
+              <label for="customCategory">Category</label>
+              <input
+                type="text"
+                id="customCategory"
+                name="customCategory"
+                class="category-input"
+                placeholder="Enter custom category"
+              />
+            </div>
+          </div>
+
           <small class="validate-category"></small>
         </div>
 
@@ -114,8 +127,10 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit">Add/Update</button>
-          <button type="button" id="closeForm">Close form</button>
+          <button type="submit" class="submit-button">Add/Update</button>
+          <button type="button" id="closeForm" class="close-form">
+            Close form
+          </button>
         </div>
       </form>
     </div>

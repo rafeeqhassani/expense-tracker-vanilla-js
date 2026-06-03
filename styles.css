@@ -12,35 +12,59 @@ body {
   font-family: "Inter", sans-serif;
 }
 
-main,
-form {
+main {
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   margin: 0 auto;
   max-width: 800px;
-  gap: 1rem;
+  width: 100%;
+  gap: 24px;
   background-color: white;
-  padding: 0 16px;
+  padding: 16px;
 }
 
 .app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 12px;
 }
 
 .filters {
-  display: flex;
-  gap: 0.8rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-rows: auto;
+  gap: 12px;
 }
 
 .expense-card {
   display: grid;
-  grid-template-columns: auto 2fr 1fr auto;
+  grid-template-columns: 24px 1fr auto;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
+  padding: 12px;
+}
+
+.info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta-info {
+  display: flex;
+  gap: 8px;
+}
+
+.right-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.action-container {
+  display: flex;
+  gap: 8px;
 }
 
 .actions-bar {
@@ -48,6 +72,8 @@ form {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 12px;
 }
 
 .message {
@@ -60,17 +86,76 @@ form {
   font-size: 1.1rem;
 }
 
+.modal form {
+  display: grid;
+  grid-template-rows: auto;
+  gap: 16px;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px;
+  background-color: white;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.category-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.submit-button {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 6px;
+}
+
+.open-form,
+.close-form,
+.delete-btn,
+.edit-btn,
+.reset-btn {
+  width: auto;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+
+#loadMore,
+#clearSelected,
+#clearAll {
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
 #toastContainer {
   display: flex;
   align-items: center;
 }
 
 input,
-select,
-button {
+select {
   width: 100%;
   padding: 0.6rem;
   border-radius: 6px;
+}
+button {
+  width: auto;
 }
 
 .hidden {
@@ -98,4 +183,21 @@ button {
 }
 .toast-error {
   background: crimson;
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .right-container {
+    align-items: flex-start;
+  }
+  .action-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

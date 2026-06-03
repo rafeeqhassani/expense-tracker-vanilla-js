@@ -1,14 +1,17 @@
 export function renderExpenses(expense) {
   if (!expense) return null;
 
-  const div = document.createElement("div");
-  div.classList.add("expense-card");
+  const expenseCard = document.createElement("div");
+  expenseCard.classList.add("expense-card");
   if (expense.amount > 1000) {
-    div.classList.add("expensive");
+    expenseCard.classList.add("expensive");
   }
 
-  const amount = document.createElement("span");
-  amount.textContent = `Rs ${expense.amount}`;
+  const rightContainer = document.createElement("div");
+  rightContainer.classList.add("right-container");
+
+  const amount = document.createElement("div");
+  amount.textContent = `${expense.amount}`;
   amount.classList.add("amount");
 
   const infoContainer = document.createElement("div");
@@ -68,12 +71,13 @@ export function renderExpenses(expense) {
   actionContainer.appendChild(editBtn);
   actionContainer.appendChild(cancelBtn);
 
-  div.appendChild(checkbox);
-  div.appendChild(infoContainer);
+  expenseCard.appendChild(checkbox);
+  expenseCard.appendChild(infoContainer);
 
-  div.appendChild(amount);
-  div.appendChild(actionContainer);
-  return div;
+  rightContainer.appendChild(amount);
+  rightContainer.appendChild(actionContainer);
+  expenseCard.appendChild(rightContainer);
+  return expenseCard;
 }
 
 export function renderMsg(message) {
