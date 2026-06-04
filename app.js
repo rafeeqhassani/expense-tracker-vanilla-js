@@ -269,10 +269,22 @@ const closeForm = () => {
   elements.formContainer.classList.add("hidden");
 };
 
-const showToastMessage = (message, type = "success") => {
+let lastToastKey = null;
+
+function showToastMessage(message, type = "success") {
+  const key = `${message}-${type}`;
+
+  if (lastToastKey === key) return;
+
+  lastToastKey = key;
+
+  setTimeout(() => {
+    lastToastKey = null;
+  }, 2500);
+
   const toast = toastMessage(message, type);
   elements.toastContainer.appendChild(toast);
-};
+}
 
 function handleDeleteExpense(id) {
   state.expenses = deleteExpense(state.expenses, id);
@@ -388,10 +400,6 @@ elements.cardContainer.addEventListener("click", (e) => {
 
   if (button.classList.contains("edit-btn")) {
     handleEditExpense(id);
-  }
-
-  if (button.classList.contains("reset-btn")) {
-    resetForm();
   }
 });
 

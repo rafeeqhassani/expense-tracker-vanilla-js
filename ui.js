@@ -47,11 +47,6 @@ export function renderExpenses(expense) {
   deleteBtn.classList.add("delete-btn");
   deleteBtn.dataset.id = expense.id;
 
-  const cancelBtn = document.createElement("button");
-  cancelBtn.textContent = "Reset";
-  cancelBtn.classList.add("reset-btn");
-  cancelBtn.dataset.id = expense.id;
-
   const editBtn = document.createElement("button");
   editBtn.textContent = "Edit";
   editBtn.dataset.id = expense.id;
@@ -69,7 +64,6 @@ export function renderExpenses(expense) {
 
   actionContainer.appendChild(deleteBtn);
   actionContainer.appendChild(editBtn);
-  actionContainer.appendChild(cancelBtn);
 
   expenseCard.appendChild(checkbox);
   expenseCard.appendChild(infoContainer);
@@ -82,7 +76,7 @@ export function renderExpenses(expense) {
 
 export function renderMsg(message) {
   const p = document.createElement("p");
-  p.classList.add("empty-message");
+  p.classList.add("empty-list-message");
   p.textContent = message;
   return p;
 }
