@@ -50,6 +50,7 @@ const elements = {
   validateAmount: document.querySelector(".validate-amount"),
   validateCategory: document.querySelector(".validate-category"),
   validateDate: document.querySelector(".validate-date"),
+  submitBtn: document.querySelector(".submit-button"),
   toastContainer: document.getElementById("toastContainer"),
 };
 
@@ -122,7 +123,7 @@ function render() {
 
   elements.totalAmount.textContent = `Rs ${totalCalculate(state.expenses)}`;
   elements.monthlyTotal.textContent = `Rs ${totalCalculate(filtered)}`;
-
+  updateSubmitButton();
   updateLoadMoreUI(filtered);
 }
 
@@ -144,6 +145,11 @@ function updateLoadMoreUI(filtered) {
 
   elements.loadMore.classList.remove("hidden");
   elements.loadMoreMessage.textContent = "";
+}
+
+function updateSubmitButton() {
+  elements.submitBtn.textContent =
+    state.mode === "add" ? "Add Expense" : "Update Expense";
 }
 
 function resetForm() {
@@ -307,6 +313,7 @@ function handleEditExpense(id) {
   clearValidationErrors();
 
   openForm();
+  render();
 }
 
 function handleFilterChange(e) {
