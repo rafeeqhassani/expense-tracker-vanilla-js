@@ -27,7 +27,30 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 10px 0 0;
   gap: 12px;
+}
+
+.row span {
+  white-space: nowrap;
+}
+
+.row span:first-child {
+  font-weight: 500;
+}
+.row span:last-child {
+  font-weight: bold;
 }
 
 .filters {
@@ -74,6 +97,11 @@ main {
   gap: 12px;
   border-bottom: 1px solid #ccc;
   padding-bottom: 12px;
+}
+
+.right {
+  display: flex;
+  gap: 8px;
 }
 
 .message {
@@ -185,19 +213,39 @@ button {
   background: crimson;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .app-header {
     flex-direction: column;
     align-items: stretch;
   }
 }
 
-@media (max-width: 600px) {
-  .right-container {
-    align-items: flex-start;
-  }
+@media (max-width: 480px) {
   .action-container {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+@media (max-width: 355px) {
+  .expense-card {
+    grid-template-columns: 1fr;
+  }
+
+  .right-container {
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 355px) {
+  .actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 355px) {
+  .meta-info {
+    flex-wrap: wrap;
   }
 }

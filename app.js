@@ -120,8 +120,8 @@ function render() {
     });
   }
 
-  elements.totalAmount.textContent = totalCalculate(state.expenses);
-  elements.monthlyTotal.textContent = totalCalculate(filtered);
+  elements.totalAmount.textContent = `Rs ${totalCalculate(state.expenses)}`;
+  elements.monthlyTotal.textContent = `Rs ${totalCalculate(filtered)}`;
 
   updateLoadMoreUI(filtered);
 }

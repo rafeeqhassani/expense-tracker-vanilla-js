@@ -11,7 +11,7 @@ export function renderExpenses(expense) {
   rightContainer.classList.add("right-container");
 
   const amount = document.createElement("div");
-  amount.textContent = `${expense.amount}`;
+  amount.textContent = `Rs ${expense.amount}`;
   amount.classList.add("amount");
 
   const infoContainer = document.createElement("div");
