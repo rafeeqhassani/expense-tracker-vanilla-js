@@ -58,11 +58,11 @@
         <div class="field">
           <label for="sortSelection">Sort by </label>
           <select id="sortSelection" name="sortBy">
-            <option value="latest">Date: Newest &#8594; Oldest</option>
             <option value="smallest">Amount: Smallest &#8594; Largest</option>
             <option value="largest">Amount: Largest &#8594; Smallest</option>
             <option value="title-ascending">Title: A &#8594; Z</option>
             <option value="title-descending">Title: Z &#8594; A</option>
+            <option value="latest">Date: Newest &#8594; Oldest</option>
           </select>
         </div>
       </section>
@@ -76,6 +76,9 @@
         <p id="loadMoreMessage" class="empty-load-message"></p>
         <div class="right">
           <button type="button" id="clearSelected">Clear selected</button>
+          <button type="button" id="clearFiltered" class="hidden">
+            Clear filtered
+          </button>
           <button type="button" id="clearAll">Clear all</button>
         </div>
       </section>

@@ -84,9 +84,6 @@ export function sortExpenses(expenses, sortBy) {
   const sorted = [...expenses];
 
   switch (sortBy) {
-    case "latest":
-      return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
-
     case "smallest":
       return sorted.sort((a, b) => a.amount - b.amount);
 
@@ -98,6 +95,9 @@ export function sortExpenses(expenses, sortBy) {
 
     case "title-descending":
       return sorted.sort((a, b) => b.title.localeCompare(a.title));
+
+    case "latest":
+      return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     default:
       return sorted;

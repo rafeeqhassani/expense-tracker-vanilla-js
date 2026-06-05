@@ -36,6 +36,7 @@ const elements = {
   loadMore: document.getElementById("loadMore"),
   loadMoreMessage: document.getElementById("loadMoreMessage"),
   clearSelected: document.getElementById("clearSelected"),
+  clearFiltered: document.getElementById("clearFiltered"),
   clearAll: document.getElementById("clearAll"),
 
   formContainer: document.querySelector(".modal"),
@@ -60,7 +61,7 @@ const state = {
   filters: {
     title: "",
     month: "all",
-    sortBy: "latest",
+    sortBy: "smallest",
   },
 
   formData: {
@@ -104,6 +105,30 @@ function getVisibleExpenses(data) {
   return data.slice(0, state.visibleCount);
 }
 
+function clearFilters() {
+  state.filters = {
+    title: "",
+    month: "all",
+    sortBy: "smallest",
+  };
+
+  state.visibleCount = 40;
+
+  elements.searchInput.value = "";
+  elements.filterMonthSelect.value = "all";
+  elements.sortSelection.value = "smallest";
+
+  render();
+}
+
+function hasActiveFilters() {
+  return (
+    state.filters.title !== "" ||
+    state.filters.month !== "all" ||
+    state.filters.sortBy !== "smallest"
+  );
+}
+
 function render() {
   const filtered = getFilteredExpenses();
 
@@ -119,6 +144,12 @@ function render() {
     visible.forEach((expense) => {
       elements.cardContainer.appendChild(renderExpenses(expense));
     });
+  }
+
+  if (hasActiveFilters()) {
+    elements.clearFiltered.classList.remove("hidden");
+  } else {
+    elements.clearFiltered.classList.add("hidden");
   }
 
   elements.totalAmount.textContent = `Rs ${totalCalculate(state.expenses)}`;
@@ -380,6 +411,7 @@ elements.clearSelected.addEventListener("click", () => {
   saveToLocalStorage("expenses", state.expenses);
   render();
 });
+elements.clearFiltered.addEventListener("click", clearFilters);
 
 elements.clearAll.addEventListener("click", () => {
   state.expenses = clearAllExpenses();
