@@ -170,7 +170,8 @@ main {
   border-radius: 6px;
 }
 
-.open-form .delete-btn,
+.open-form,
+.delete-btn,
 .edit-btn,
 .reset-btn {
   width: auto;
