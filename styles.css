@@ -108,8 +108,6 @@ main {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 12px;
 }
 
 .right {
@@ -172,8 +170,7 @@ main {
 
 .open-form,
 .delete-btn,
-.edit-btn,
-.reset-btn {
+.edit-btn {
   width: auto;
   padding: 8px 14px;
   border-radius: 6px;
@@ -196,17 +193,13 @@ main {
   border-radius: 6px;
 }
 
-#toastContainer {
-  display: flex;
-  align-items: center;
-}
-
 input,
 select {
   width: 100%;
   padding: 0.6rem;
   border-radius: 6px;
 }
+
 button {
   width: auto;
   background: #2563eb;
@@ -218,9 +211,14 @@ button {
   display: none;
 }
 
+#toastContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
 .toast {
   padding: 10px 14px;
-  margin: 6px;
   border-radius: 6px;
   color: white;
   font-size: 14px;
