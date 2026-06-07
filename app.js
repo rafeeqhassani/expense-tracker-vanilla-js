@@ -162,20 +162,26 @@ function updateLoadMoreUI(filtered) {
   const total = filtered.length;
   const visible = state.visibleCount;
 
-  if (total === 0) {
-    elements.loadMore.classList.add("hidden");
+  const isEmpty = total === 0;
+  const hasMore = total > visible;
+  const isFullyLoaded = total > 0 && total <= visible;
+
+  if (isEmpty) {
     elements.loadMoreMessage.textContent = "No expenses to load";
-    return;
-  }
-
-  if (visible >= total) {
     elements.loadMore.classList.add("hidden");
-    elements.loadMoreMessage.textContent = "No more data exist";
     return;
   }
 
-  elements.loadMore.classList.remove("hidden");
-  elements.loadMoreMessage.textContent = "";
+  if (hasMore) {
+    elements.loadMoreMessage.textContent = "";
+    elements.loadMore.classList.remove("hidden");
+    return;
+  }
+
+  if (isFullyLoaded) {
+    elements.loadMoreMessage.textContent = "No more expenses exist";
+    elements.loadMore.classList.add("hidden");
+  }
 }
 
 function updateSubmitButton() {
