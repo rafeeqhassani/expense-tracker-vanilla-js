@@ -9,142 +9,243 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;&display=swap"
       rel="stylesheet"
     />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <main>
-      <section class="app-header">
-        <h1>Expense Tracker</h1>
-        <div class="summary">
-          <div class="row">
-            <span>Total:</span>
-            <span id="totalAmount">0</span>
-          </div>
-          <div class="row">
-            <span>Monthly: </span>
-            <span id="monthlyTotal">0</span>
-          </div>
-        </div>
-        <button id="openForm" class="open-form">Add new expense</button>
-      </section>
+    <div class="dashboard">
+      <div class="sidebar-overlay hidden"></div>
 
-      <section class="filters">
-        <div class="field">
-          <label for="searchExpenses">Search</label>
-          <input
-            type="text"
-            id="searchExpenses"
-            name="title"
-            placeholder="Search by title..."
-          />
-        </div>
-        <div class="field">
-          <label for="filterByMonth">Filter by month</label>
-          <select id="filterByMonth" name="month">
-            <option value="all">All Months</option>
-            <option value="1">January</option>
-            <option value="2">February</option>
-            <option value="3">March</option>
-            <option value="4">April</option>
-            <option value="5">May</option>
-            <option value="6">June</option>
-            <option value="7">July</option>
-            <option value="8">August</option>
-            <option value="9">September</option>
-            <option value="10">October</option>
-            <option value="11">November</option>
-            <option value="12">December</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="sortSelection">Sort by </label>
-          <select id="sortSelection" name="sortBy">
-            <option value="smallest">Amount: Smallest &#8594; Largest</option>
-            <option value="largest">Amount: Largest &#8594; Smallest</option>
-            <option value="title-ascending">Title: A &#8594; Z</option>
-            <option value="title-descending">Title: Z &#8594; A</option>
-            <option value="latest">Date: Newest &#8594; Oldest</option>
-          </select>
-        </div>
-      </section>
-
-      <section id="cardContainer" class="list-container"></section>
-
-      <section class="actions-bar">
-        <div class="left">
-          <button type="button" id="loadMore" class="hidden">Load more</button>
-        </div>
-        <p id="loadMoreMessage" class="empty-load-message"></p>
-        <div class="right">
-          <button type="button" id="clearFiltered" class="hidden">
-            Clear filtered
+      <aside class="sidebar">
+        <div class="logo">
+          <span class="logo-icon"><i class="fa-solid fa-wallet"></i></span>
+          Expense Dashboard
+          <button class="close-btn hidden">
+            <i class="fa-solid fa-xmark"></i>
           </button>
-          <button type="button" id="clearSelected">Clear selected</button>
-          <button type="button" id="clearAll">Clear all</button>
         </div>
-      </section>
-    </main>
+        <nav class="nav">
+          <div class="add-new-expense">
+            <button id="openForm" class="open-form">
+              <span class="add-expense-icon"
+                ><i class="fa-solid fa-circle-plus"></i
+              ></span>
+              <span class="button-text">Add new expense</span>
+            </button>
+          </div>
 
-    <div class="modal hidden">
-      <form id="expenseForm">
-        <div class="field">
-          <label for="title">Title</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            placeholder="Add Expense"
-          />
-          <small class="validate-title"></small>
-        </div>
-
-        <div class="field">
-          <label for="amount">Amount</label>
-          <input
-            type="number"
-            id="amount"
-            name="amount"
-            placeholder="e.g. 100.00"
-          />
-          <small class="validate-amount"></small>
-        </div>
-
-        <div class="category-field">
-          <div class="input-group">
-            <div class="field">
-              <label for="selectCategory">Select category</label>
-              <select id="selectCategory" name="category"></select>
+          <div class="sidebar-summary">
+            <div class="sidebar-card">
+              <div class="card-icon">
+                <i class="fa-solid fa-money-bill-wave"></i>
+              </div>
+              <span>total</span>
+              <h3 class="total"></h3>
             </div>
+
+            <div class="sidebar-card">
+              <div class="card-icon">
+                <icon class="fa-solid fa-chart-line"></icon>
+              </div>
+              <span>monthly</span>
+              <h3 class="monthly"></h3>
+            </div>
+
+            <div class="sidebar-card">
+              <div class="card-icon"><i class="fa-solid fa-receipt"></i></div>
+              <span>records</span>
+              <h3 class="records"></h3>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section class="app-header">
+          <div class="mobile-actions">
+            <button class="menu-btn">☰</button>
+            <button class="add-btn">+</button>
+          </div>
+
+          <div class="header-top">
+            <h1>Expense Tracker</h1>
+            <p>Manage your expenses</p>
+          </div>
+
+          <div class="summary">
+            <div class="summary-card">
+              <span>Total</span>
+              <h3 class="total"></h3>
+            </div>
+            <div class="summary-card">
+              <span>Monthly</span>
+              <h3 class="monthly"></h3>
+            </div>
+            <div class="summary-card">
+              <span>Records</span>
+              <h3 class="records"></h3>
+            </div>
+          </div>
+        </section>
+
+        <section class="filters">
+          <div class="filter-group">
+            <label for="searchExpenses">Search</label>
+            <input
+              type="text"
+              id="searchExpenses"
+              name="title"
+              placeholder="Search by title..."
+            />
+          </div>
+
+          <div class="filter-group">
+            <label for="filterByMonth">Filter by month</label>
+            <select id="filterByMonth" name="month">
+              <option value="all">All Months</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="sortSelection">Sort by </label>
+            <select id="sortSelection" name="sortBy">
+              <option value="smallest">Amount: Smallest &#8594; Largest</option>
+
+              <option value="largest">Amount: Largest &#8594; Smallest</option>
+
+              <option value="title-ascending">Title: A &#8594; Z</option>
+
+              <option value="title-descending">Title: Z &#8594; A</option>
+
+              <option value="newest">Date: Newest &#8594; Oldest</option>
+
+              <option value="oldest">Date: Oldest &#8594; Newest</option>
+            </select>
+          </div>
+          <div class="filter-button-group">
+            <button
+              type="button"
+              class="clear-filtered hidden"
+              id="clearFiltered"
+            >
+              Reset filters
+            </button>
+          </div>
+        </section>
+
+        <section id="cardContainer" class="list-container">
+          <div class="table-wrapper hidden">
+            <table class="expense-table">
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="actions-bar">
+          <div class="left">
+            <button type="button" id="loadMore" class="hidden">
+              Load more
+            </button>
+            <p id="loadMoreMessage" class="empty-load-message"></p>
+          </div>
+          <div class="center">
+            <button type="button" id="clearSelected">Clear selected</button>
+          </div>
+          <div class="right">
+            <button type="button" id="clearAll">Clear all</button>
+          </div>
+        </section>
+      </main>
+
+      <div class="overlay hidden" id="formOverlay">
+        <div class="modal">
+          <form id="expenseForm" class="expense-form">
             <div class="field">
-              <label for="customCategory">Category</label>
+              <label for="title">Title</label>
               <input
                 type="text"
-                id="customCategory"
-                name="customCategory"
-                class="category-input"
-                placeholder="Enter custom category"
+                id="title"
+                name="title"
+                placeholder="Add Expense"
               />
+              <small class="validate-title"></small>
             </div>
-          </div>
 
-          <small class="validate-category"></small>
-        </div>
+            <div class="field">
+              <label for="amount">Amount</label>
+              <input
+                type="number"
+                id="amount"
+                name="amount"
+                placeholder="e.g. 100.00"
+              />
+              <small class="validate-amount"></small>
+            </div>
 
-        <div class="field">
-          <label for="dateInput">Date</label>
-          <input type="date" id="dateInput" name="date" />
-          <small class="validate-date"></small>
-        </div>
+            <div class="category-field">
+              <div class="input-group">
+                <div class="field">
+                  <label for="selectCategory">Select category</label>
+                  <select id="selectCategory" name="category"></select>
+                </div>
+                <div class="field">
+                  <label for="customCategory">Category</label>
+                  <input
+                    type="text"
+                    id="customCategory"
+                    name="customCategory"
+                    class="category-input"
+                    placeholder="Enter custom category"
+                  />
+                </div>
+              </div>
 
-        <div class="form-actions">
-          <button type="submit" class="submit-button"></button>
-          <button type="button" id="closeForm" class="close-form">
-            Close form
-          </button>
+              <small class="validate-category"></small>
+            </div>
+
+            <div class="field">
+              <label for="dateInput">Date</label>
+              <input type="date" id="dateInput" name="date" />
+              <small class="validate-date"></small>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="submit-button"></button>
+              <button type="button" id="closeForm" class="close-form">
+                Close
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
+
+      <div id="toastContainer" class="toast-container"></div>
     </div>
-
-    <div id="toastContainer"></div>
     <script type="module" src="./app.js"></script>
   </body>
 </html>

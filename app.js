@@ -23,8 +23,15 @@ import {
 } from "./ui.js";
 
 const elements = {
-  totalAmount: document.getElementById("totalAmount"),
-  monthlyTotal: document.getElementById("monthlyTotal"),
+  menuBtn: document.querySelector(".menu-btn"),
+  addExpenseBtn: document.querySelector(".add-btn"),
+  sidebar: document.querySelector(".sidebar"),
+  sidebarOverlay: document.querySelector(".sidebar-overlay"),
+  sidebarClosebtn: document.querySelector(".close-btn"),
+
+  totalAmount: document.querySelectorAll(".total"),
+  monthlyTotal: document.querySelectorAll(".monthly"),
+  records: document.querySelectorAll(".records"),
   openForm: document.getElementById("openForm"),
 
   searchInput: document.getElementById("searchExpenses"),
@@ -32,6 +39,8 @@ const elements = {
   sortSelection: document.getElementById("sortSelection"),
 
   cardContainer: document.getElementById("cardContainer"),
+  tableWrapper: document.querySelector(".table-wrapper"),
+  tBody: document.getElementById("tableBody"),
 
   loadMore: document.getElementById("loadMore"),
   loadMoreMessage: document.getElementById("loadMoreMessage"),
@@ -39,7 +48,7 @@ const elements = {
   clearFiltered: document.getElementById("clearFiltered"),
   clearAll: document.getElementById("clearAll"),
 
-  formContainer: document.querySelector(".modal"),
+  formOverlay: document.getElementById("formOverlay"),
   form: document.getElementById("expenseForm"),
   titleInput: document.getElementById("title"),
   amountInput: document.getElementById("amount"),
@@ -131,20 +140,40 @@ function hasActiveFilters() {
 
 function render() {
   const filtered = getFilteredExpenses();
-
-  elements.cardContainer.textContent = "";
-
+  updateSummary(filtered);
   const visible = getVisibleExpenses(filtered);
 
-  if (state.expenses.length === 0) {
-    elements.cardContainer.appendChild(renderMsg("No expenses added yet"));
-  } else if (filtered.length === 0) {
-    elements.cardContainer.appendChild(renderMsg("No expenses found"));
-  } else {
-    visible.forEach((expense) => {
-      elements.cardContainer.appendChild(renderExpenses(expense));
-    });
+  elements.tBody.innerHTML = "";
+
+  const existingMsg = elements.cardContainer.querySelector(
+    ".empty-list-message",
+  );
+
+  if (existingMsg) {
+    existingMsg.remove();
   }
+
+  if (state.expenses.length === 0) {
+    elements.tableWrapper.classList.add("hidden");
+
+    elements.cardContainer.appendChild(renderMsg("No expenses added yet"));
+
+    return;
+  }
+
+  if (filtered.length === 0) {
+    elements.tableWrapper.classList.add("hidden");
+
+    elements.cardContainer.appendChild(renderMsg("No expenses found"));
+
+    return;
+  }
+
+  elements.tableWrapper.classList.remove("hidden");
+
+  visible.forEach((expense) => {
+    elements.tBody.appendChild(renderExpenses(expense));
+  });
 
   if (hasActiveFilters()) {
     elements.clearFiltered.classList.remove("hidden");
@@ -152,10 +181,22 @@ function render() {
     elements.clearFiltered.classList.add("hidden");
   }
 
-  elements.totalAmount.textContent = `Rs ${totalCalculate(state.expenses)}`;
-  elements.monthlyTotal.textContent = `Rs ${totalCalculate(filtered)}`;
   updateSubmitButton();
   updateLoadMoreUI(filtered);
+}
+
+function updateSummary(filtered) {
+  elements.totalAmount.forEach((el) => {
+    el.textContent = `$${totalCalculate(state.expenses)}`;
+  });
+
+  elements.monthlyTotal.forEach((el) => {
+    el.textContent = `$${totalCalculate(filtered)}`;
+  });
+
+  elements.records.forEach((el) => {
+    el.textContent = state.expenses.length;
+  });
 }
 
 function updateLoadMoreUI(filtered) {
@@ -222,7 +263,6 @@ function clearValidationErrors() {
 function handleError(errors) {
   state.errors = errors;
   renderValidationErrors(errors);
-  showToastMessage("Please fix validation errors", "error");
 }
 
 function handleAdd(newData) {
@@ -297,13 +337,18 @@ function handleSubmit(e) {
 }
 
 const openForm = () => {
+  updateSubmitButton();
+
   state.isFormOpen = true;
-  elements.formContainer.classList.remove("hidden");
+
+  elements.formOverlay.classList.remove("hidden");
+  document.body.classList.add("no-scroll");
 };
 
 const closeForm = () => {
   state.isFormOpen = false;
-  elements.formContainer.classList.add("hidden");
+  elements.formOverlay.classList.add("hidden");
+  document.body.classList.remove("no-scroll");
 };
 
 let lastToastKey = null;
@@ -340,6 +385,7 @@ function handleEditExpense(id) {
 
   state.mode = "edit";
   state.editingId = id;
+  updateSubmitButton();
 
   state.formData = {
     title: expense.title,
@@ -400,6 +446,37 @@ function handleCheckboxChange(id, onCheckboxChange) {
 
   render();
 }
+
+elements.sidebarOverlay.addEventListener("click", () => {
+  elements.sidebar.classList.remove("active");
+  elements.sidebarOverlay.classList.add("hidden");
+  document.body.classList.remove("no-scroll");
+});
+
+elements.sidebar.addEventListener("click", () => {
+  elements.sidebar.classList.remove("active");
+  elements.sidebarOverlay.classList.add("hidden");
+  document.body.classList.remove("no-scroll");
+});
+
+elements.sidebarClosebtn.addEventListener("click", () => {
+  elements.sidebar.classList.remove("active");
+  elements.sidebarOverlay.classList.add("hidden");
+  ocument.body.classList.remove("no-scroll");
+});
+
+elements.menuBtn.addEventListener("click", () => {
+  elements.sidebar.classList.add("active");
+  elements.sidebarOverlay.classList.remove("hidden");
+  document.body.classList.add("no-scroll");
+});
+
+elements.formOverlay.addEventListener("click", (e) => {
+  if (e.target === elements.formOverlay) {
+    closeForm();
+  }
+});
+elements.addExpenseBtn.addEventListener("click", openForm);
 
 elements.form.addEventListener("submit", handleSubmit);
 elements.form.addEventListener("input", handleInputChange);

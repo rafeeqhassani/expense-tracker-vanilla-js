@@ -96,8 +96,23 @@ export function sortExpenses(expenses, sortBy) {
     case "title-descending":
       return sorted.sort((a, b) => b.title.localeCompare(a.title));
 
-    case "latest":
-      return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+    case "newest":
+      return sorted.sort((a, b) => {
+        const dateDiff = new Date(b.date) - new Date(a.date);
+
+        if (dateDiff !== 0) return dateDiff;
+
+        return b.amount - a.amount;
+      });
+
+    case "oldest":
+      return sorted.sort((a, b) => {
+        const dateDiff = new Date(a.date) - new Date(b.date);
+
+        if (dateDiff !== 0) return dateDiff;
+
+        return a.amount - b.amount;
+      });
 
     default:
       return sorted;

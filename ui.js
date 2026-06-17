@@ -1,77 +1,66 @@
 export function renderExpenses(expense) {
   if (!expense) return null;
+  const tableRow = document.createElement("tr");
 
-  const expenseCard = document.createElement("div");
-  expenseCard.classList.add("expense-card");
-  if (expense.amount > 1000) {
-    expenseCard.classList.add("expensive");
-  }
-
-  const rightContainer = document.createElement("div");
-  rightContainer.classList.add("right-container");
-
-  const amount = document.createElement("div");
-  amount.textContent = `Rs ${expense.amount}`;
-  amount.classList.add("amount");
-
-  const infoContainer = document.createElement("div");
-  infoContainer.classList.add("info-container");
-
-  const h4 = document.createElement("h4");
-  h4.textContent = expense.title;
-
-  const metaElements = document.createElement("p");
-  metaElements.classList.add("meta-info");
-
-  const categorySpan = document.createElement("span");
-  categorySpan.textContent = expense.category;
-  categorySpan.classList.add("category");
-
-  const dotSpan = document.createElement("span");
-  dotSpan.textContent = " . ";
-  dotSpan.classList.add("dot");
-
-  const dateSpan = document.createElement("span");
-  dateSpan.textContent = new Date(expense.date).toLocaleDateString("en-GB");
-  dateSpan.classList.add("date");
-
-  metaElements.appendChild(categorySpan);
-  metaElements.appendChild(dotSpan);
-  metaElements.appendChild(dateSpan);
-
-  const actionContainer = document.createElement("div");
-  actionContainer.classList.add("action-container");
-
-  const deleteBtn = document.createElement("button");
-  deleteBtn.textContent = "X";
-  deleteBtn.classList.add("delete-btn");
-  deleteBtn.dataset.id = expense.id;
-
-  const editBtn = document.createElement("button");
-  editBtn.textContent = "Edit";
-  editBtn.dataset.id = expense.id;
-  editBtn.classList.add("edit-btn");
-
+  const checkboxTd = document.createElement("td");
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.classList.add("select-expense");
   checkbox.dataset.id = expense.id;
   checkbox.checked = expense.selected || false;
 
-  infoContainer.appendChild(h4);
+  const titleTd = document.createElement("td");
+  titleTd.textContent = expense.title;
 
-  infoContainer.appendChild(metaElements);
+  const categoryTd = document.createElement("td");
+  categoryTd.textContent = expense.category;
+  categoryTd.className = "category-badge";
 
-  actionContainer.appendChild(deleteBtn);
-  actionContainer.appendChild(editBtn);
+  const dateTd = document.createElement("td");
+  dateTd.textContent = new Date(expense.date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 
-  expenseCard.appendChild(checkbox);
-  expenseCard.appendChild(infoContainer);
+  const amountTd = document.createElement("td");
+  amountTd.textContent = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(expense.amount || 0);
+  amountTd.className = "amount";
 
-  rightContainer.appendChild(amount);
-  rightContainer.appendChild(actionContainer);
-  expenseCard.appendChild(rightContainer);
-  return expenseCard;
+  if (expense.amount >= 50000) {
+    amountTd.classList.add("high");
+  } else if (expense.amount >= 20000) {
+    amountTd.classList.add("medium");
+  }
+
+  const actionsTd = document.createElement("td");
+  actionsTd.className = "actions";
+
+  const editBtn = document.createElement("button");
+  editBtn.textContent = "Edit";
+  editBtn.dataset.id = expense.id;
+  editBtn.classList.add("edit-btn");
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "X";
+  deleteBtn.classList.add("delete-btn");
+  deleteBtn.dataset.id = expense.id;
+
+  checkboxTd.appendChild(checkbox);
+  actionsTd.appendChild(editBtn);
+  actionsTd.appendChild(deleteBtn);
+
+  tableRow.appendChild(checkboxTd);
+  tableRow.appendChild(titleTd);
+  tableRow.appendChild(categoryTd);
+  tableRow.appendChild(dateTd);
+  tableRow.appendChild(amountTd);
+  tableRow.appendChild(actionsTd);
+
+  return tableRow;
 }
 
 export function renderMsg(message) {
