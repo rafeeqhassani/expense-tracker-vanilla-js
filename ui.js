@@ -73,7 +73,7 @@ export function renderMsg(message) {
 export function toastMessage(message, type = "success") {
   const toast = document.createElement("p");
 
-  toast.className = `toast toast-${type}`;
+  toast.className = `toast-message toast-${type}`;
   toast.textContent = message;
 
   setTimeout(() => {

@@ -1,6 +1,6 @@
 export function addExpense(expenses, newExpense) {
   const added = [...expenses, newExpense];
-  return added.slice(-500);
+  return added;
 }
 
 export function normalizedData(
@@ -40,6 +40,8 @@ export function validateForm(formData) {
 
   if (!formData.title.trim()) {
     validationErrors.title = "Title is required";
+  } else if (!isNaN(formData.title)) {
+    validationErrors.title = "Title cannot be a number";
   }
 
   if (!formData.amount || Number(formData.amount) <= 0) {
@@ -51,6 +53,8 @@ export function validateForm(formData) {
 
   if (!finalCategory) {
     validationErrors.category = "Please select or enter a category";
+  } else if (!isNaN(finalCategory)) {
+    validationErrors.category = "Category cannot be a number";
   }
 
   if (!formData.date) {

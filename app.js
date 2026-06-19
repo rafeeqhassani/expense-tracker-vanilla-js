@@ -13,7 +13,9 @@ import {
   normalizedData,
   isSameData,
 } from "./expense.js";
+
 import { saveToLocalStorage, getFromLocalStorage } from "./storage.js";
+
 import {
   renderExpenses,
   clearAllExpenses,
@@ -32,6 +34,7 @@ const elements = {
   totalAmount: document.querySelectorAll(".total"),
   monthlyTotal: document.querySelectorAll(".monthly"),
   records: document.querySelectorAll(".records"),
+
   openForm: document.getElementById("openForm"),
 
   searchInput: document.getElementById("searchExpenses"),
@@ -56,10 +59,12 @@ const elements = {
   categoryInput: document.getElementById("customCategory"),
   dateInput: document.getElementById("dateInput"),
   closeForm: document.getElementById("closeForm"),
+
   validateTitle: document.querySelector(".validate-title"),
   validateAmount: document.querySelector(".validate-amount"),
   validateCategory: document.querySelector(".validate-category"),
   validateDate: document.querySelector(".validate-date"),
+
   submitBtn: document.querySelector(".submit-button"),
   toastContainer: document.getElementById("toastContainer"),
 };
@@ -67,6 +72,7 @@ const elements = {
 const state = {
   expenses: [],
   visibleCount: 40,
+
   filters: {
     title: "",
     month: "all",
@@ -81,28 +87,36 @@ const state = {
     date: "",
   },
 
-  isFormOpen: false,
+  errors: {},
+  touched: {},
+  submitAttemted: false,
+
   mode: "add",
   editingId: null,
-  errors: {},
   isSubmitting: false,
 };
 
 try {
   const stored = getFromLocalStorage("expenses") || [];
-
   state.expenses = stored.map((item) => ({
     ...item,
     selected: typeof item.selected === "boolean" ? item.selected : false,
   }));
-} catch (error) {
-  console.error(error);
+} catch (e) {
   state.expenses = [];
+}
+
+try {
+  const storedVisible = Number(getFromLocalStorage("visibleCount"));
+
+  state.visibleCount =
+    Number.isFinite(storedVisible) && storedVisible > 0 ? storedVisible : 40;
+} catch {
+  state.visibleCount = 40;
 }
 
 function getFilteredExpenses() {
   const searched = searchExpenses(state.expenses, state.filters.title);
-
   const sorted = sortExpenses(searched, state.filters.sortBy);
 
   return state.filters.month === "all"
@@ -114,20 +128,12 @@ function getVisibleExpenses(data) {
   return data.slice(0, state.visibleCount);
 }
 
-function clearFilters() {
+function initFilters() {
   state.filters = {
     title: "",
     month: "all",
     sortBy: "smallest",
   };
-
-  state.visibleCount = 40;
-
-  elements.searchInput.value = "";
-  elements.filterMonthSelect.value = "all";
-  elements.sortSelection.value = "smallest";
-
-  render();
 }
 
 function hasActiveFilters() {
@@ -138,99 +144,136 @@ function hasActiveFilters() {
   );
 }
 
+function commit() {
+  render();
+}
+
 function render() {
   const filtered = getFilteredExpenses();
-  updateSummary(filtered);
   const visible = getVisibleExpenses(filtered);
 
+  renderSummaryUI(filtered);
+  renderTableUI(visible, filtered);
+  renderMessagesUI(filtered);
+  renderLoadMoreUI(filtered);
+  renderValidationUI(state.errors);
+  renderSubmitButtonUI(state.mode);
+  renderCategoriesUI();
+
+  elements.clearFiltered.classList.toggle("hidden", !hasActiveFilters());
+}
+
+function renderTableUI(visible, filtered) {
   elements.tBody.innerHTML = "";
 
-  const existingMsg = elements.cardContainer.querySelector(
-    ".empty-list-message",
-  );
+  const container = elements.cardContainer;
+  const wrapper = elements.tableWrapper;
 
-  if (existingMsg) {
-    existingMsg.remove();
-  }
+  const existing = container.querySelector(".empty-list-message");
+  if (existing) existing.remove();
 
   if (state.expenses.length === 0) {
-    elements.tableWrapper.classList.add("hidden");
-
-    elements.cardContainer.appendChild(renderMsg("No expenses added yet"));
-
+    wrapper.classList.add("hidden");
+    container.appendChild(renderMsg("No expenses added yet"));
     return;
   }
 
   if (filtered.length === 0) {
-    elements.tableWrapper.classList.add("hidden");
-
-    elements.cardContainer.appendChild(renderMsg("No expenses found"));
-
+    wrapper.classList.add("hidden");
+    container.appendChild(renderMsg("No expenses found"));
     return;
   }
 
-  elements.tableWrapper.classList.remove("hidden");
+  wrapper.classList.remove("hidden");
 
-  visible.forEach((expense) => {
-    elements.tBody.appendChild(renderExpenses(expense));
-  });
-
-  if (hasActiveFilters()) {
-    elements.clearFiltered.classList.remove("hidden");
-  } else {
-    elements.clearFiltered.classList.add("hidden");
-  }
-
-  updateSubmitButton();
-  updateLoadMoreUI(filtered);
-}
-
-function updateSummary(filtered) {
-  elements.totalAmount.forEach((el) => {
-    el.textContent = `$${totalCalculate(state.expenses)}`;
-  });
-
-  elements.monthlyTotal.forEach((el) => {
-    el.textContent = `$${totalCalculate(filtered)}`;
-  });
-
-  elements.records.forEach((el) => {
-    el.textContent = state.expenses.length;
+  visible.forEach((exp) => {
+    elements.tBody.appendChild(renderExpenses(exp));
   });
 }
 
-function updateLoadMoreUI(filtered) {
+function renderSummaryUI(filtered) {
+  const total = totalCalculate(state.expenses);
+  const monthly = totalCalculate(filtered);
+
+  elements.totalAmount.forEach((el) => (el.textContent = `$${total}`));
+  elements.monthlyTotal.forEach((el) => (el.textContent = `$${monthly}`));
+  elements.records.forEach((el) => (el.textContent = state.expenses.length));
+}
+
+function renderLoadMoreUI(filtered) {
   const total = filtered.length;
   const visible = state.visibleCount;
 
-  const isEmpty = total === 0;
-  const hasMore = total > visible;
-  const isFullyLoaded = total > 0 && total <= visible;
-
-  if (isEmpty) {
+  if (total === 0) {
     elements.loadMoreMessage.textContent = "No expenses to load";
     elements.loadMore.classList.add("hidden");
     return;
   }
 
-  if (hasMore) {
+  if (total > visible) {
     elements.loadMoreMessage.textContent = "";
     elements.loadMore.classList.remove("hidden");
     return;
   }
 
-  if (isFullyLoaded) {
-    elements.loadMoreMessage.textContent = "No more expenses exist";
-    elements.loadMore.classList.add("hidden");
+  elements.loadMoreMessage.textContent = "No more expenses exist";
+  elements.loadMore.classList.add("hidden");
+}
+
+function renderSubmitButtonUI(mode) {
+  elements.submitBtn.textContent =
+    mode === "add" ? "Add Expense" : "Update Expense";
+}
+
+function shouldShowError(field) {
+  return (state.submitAttemted || state.touched[field]) && state.errors[field];
+}
+
+function renderValidationUI(errors) {
+  if (!state.submitAttemted && Object.keys(state.touched).length === 0) {
+    clearValidationErrors();
+    return;
+  }
+
+  elements.validateTitle.textContent = shouldShowError("title")
+    ? errors.title
+    : "";
+  elements.validateAmount.textContent = shouldShowError("amount")
+    ? errors.amount
+    : "";
+  elements.validateCategory.textContent = shouldShowError("category")
+    ? errors.category
+    : "";
+  elements.validateDate.textContent = shouldShowError("date")
+    ? errors.date
+    : "";
+}
+
+function clearValidationErrors() {
+  elements.validateTitle.textContent = "";
+  elements.validateAmount.textContent = "";
+  elements.validateCategory.textContent = "";
+  elements.validateDate.textContent = "";
+}
+
+function renderMessagesUI(filtered) {
+  const container = elements.cardContainer;
+
+  const existing = container.querySelector(".empty-list-message");
+  if (existing) existing.remove();
+
+  if (state.expenses.length === 0) {
+    container.appendChild(renderMsg("No expenses added yet"));
+  } else if (filtered.length === 0) {
+    container.appendChild(renderMsg("No expenses found"));
   }
 }
 
-function updateSubmitButton() {
-  elements.submitBtn.textContent =
-    state.mode === "add" ? "Add Expense" : "Update Expense";
-}
-
 function resetForm() {
+  state.errors = {};
+  state.touched = {};
+  state.submitAttemted = false;
+
   state.formData = {
     title: "",
     amount: "",
@@ -241,67 +284,9 @@ function resetForm() {
 
   state.mode = "add";
   state.editingId = null;
-  state.errors = {};
 
   elements.form.reset();
-}
-
-function renderValidationErrors(errors) {
-  elements.validateTitle.textContent = errors.title || "";
-  elements.validateAmount.textContent = errors.amount || "";
-  elements.validateCategory.textContent = errors.category || "";
-  elements.validateDate.textContent = errors.date || "";
-}
-
-function clearValidationErrors() {
-  elements.validateTitle.textContent = "";
-  elements.validateAmount.textContent = "";
-  elements.validateCategory.textContent = "";
-  elements.validateDate.textContent = "";
-}
-
-function handleError(errors) {
-  state.errors = errors;
-  renderValidationErrors(errors);
-}
-
-function handleAdd(newData) {
-  state.errors = {};
   clearValidationErrors();
-
-  state.expenses = addExpense(state.expenses, newData);
-  saveToLocalStorage("expenses", state.expenses);
-
-  commitSuccess("Expense added");
-}
-
-function handleUpdate(newData) {
-  const existingData = state.expenses.find(
-    (item) => item.id === state.editingId,
-  );
-
-  if (!existingData) {
-    return showToastMessage("Expense not found", "error");
-  }
-
-  if (isSameData(existingData, newData)) {
-    return showToastMessage("No changes detected", "info");
-  }
-
-  state.expenses = updateExpense(state.expenses, state.editingId, newData);
-
-  saveToLocalStorage("expenses", state.expenses);
-
-  commitSuccess("Expense updated");
-}
-
-function commitSuccess(message) {
-  resetForm();
-
-  handleCategories();
-  render();
-  showToastMessage(message, "success");
-  closeForm();
 }
 
 function handleSubmit(e) {
@@ -310,59 +295,85 @@ function handleSubmit(e) {
   if (state.isSubmitting) return;
   state.isSubmitting = true;
 
+  state.submitAttemted = true;
+
+  const errors = validateForm(state.formData);
+
+  if (Object.keys(errors).length > 0) {
+    state.errors = errors;
+    state.isSubmitting = false;
+    commit();
+    return;
+  }
+
+  const finalCategory =
+    state.formData.customCategory || state.formData.category;
+
+  const newData = normalizedData({
+    ...state.formData,
+    category: finalCategory,
+  });
+
   try {
-    const validationErrors = validateForm(state.formData);
-
-    if (Object.keys(validationErrors).length > 0) {
-      handleError(validationErrors);
-      return;
-    }
-
-    const finalCategory =
-      state.formData.customCategory || state.formData.category;
-
-    const newData = normalizedData({
-      ...state.formData,
-      category: finalCategory,
-    });
-
     if (state.mode === "add") {
-      return handleAdd(newData);
+      state.expenses = addExpense(state.expenses, newData);
+    } else {
+      const existing = state.expenses.find((e) => e.id === state.editingId);
+
+      if (!existing) return;
+
+      if (isSameData(existing, newData)) {
+        showToastMessage("No changes detected", "info");
+        return;
+      }
+
+      state.expenses = updateExpense(state.expenses, state.editingId, newData);
     }
 
-    return handleUpdate(newData);
+    showToastMessage(
+      state.mode === "add" ? "Expense added" : "Expense updated",
+      "success",
+    );
+
+    resetForm();
+    closeForm();
+    saveToLocalStorage("expenses", state.expenses);
+    renderCategoriesUI();
   } finally {
     state.isSubmitting = false;
   }
+
+  commit();
+}
+
+function updateScrollLock() {
+  const isSidebarOpen = elements.sidebar.classList.contains("active");
+
+  const isFormOpen = !elements.formOverlay.classList.contains("hidden");
+
+  document.body.classList.toggle("no-scroll", isSidebarOpen || isFormOpen);
 }
 
 const openForm = () => {
-  updateSubmitButton();
-
   state.isFormOpen = true;
-
   elements.formOverlay.classList.remove("hidden");
-  document.body.classList.add("no-scroll");
+  updateScrollLock();
 };
 
 const closeForm = () => {
   state.isFormOpen = false;
   elements.formOverlay.classList.add("hidden");
-  document.body.classList.remove("no-scroll");
+  updateScrollLock();
 };
 
 let lastToastKey = null;
 
 function showToastMessage(message, type = "success") {
   const key = `${message}-${type}`;
-
   if (lastToastKey === key) return;
 
   lastToastKey = key;
-
-  setTimeout(() => {
-    lastToastKey = null;
-  }, 2500);
+  setTimeout(() => (lastToastKey = null), 2500);
 
   const toast = toastMessage(message, type);
   elements.toastContainer.appendChild(toast);
@@ -372,71 +383,67 @@ function handleDeleteExpense(id) {
   state.expenses = deleteExpense(state.expenses, id);
   saveToLocalStorage("expenses", state.expenses);
   showToastMessage("Expense deleted", "success");
-  render();
+  commit();
 }
 
 function handleEditExpense(id) {
   const expense = editExpense(state.expenses, id);
-
-  if (!expense) {
-    showToastMessage("Expense not found", "error");
-    return;
-  }
+  if (!expense) return;
 
   state.mode = "edit";
   state.editingId = id;
-  updateSubmitButton();
 
-  state.formData = {
-    title: expense.title,
-    amount: expense.amount,
-    category: expense.category,
-    customCategory: "",
-    date: expense.date,
-  };
+  state.formData = { ...expense, customCategory: "" };
 
-  handleCategories();
+  elements.titleInput.value = expense.title;
+  elements.amountInput.value = expense.amount;
+  elements.dateInput.value = expense.date;
+  elements.selectCategory.value = expense.category;
 
-  elements.titleInput.value = state.formData.title;
-  elements.amountInput.value = state.formData.amount;
-  elements.dateInput.value = state.formData.date;
-
-  elements.selectCategory.value = state.formData.category;
-  elements.categoryInput.value = state.formData.customCategory;
-
-  state.errors = {};
-  clearValidationErrors();
-
+  resetForm();
   openForm();
-  render();
+  commit();
+}
+
+function handleInputChange(e) {
+  const { name, value } = e.target;
+
+  state.formData[name] = value;
+  state.touched[name] = true;
+
+  delete state.errors[name];
+
+  renderValidationUI(state.errors);
 }
 
 function handleFilterChange(e) {
   state.filters[e.target.name] = e.target.value;
-  render();
-}
 
-function handleInputChange(e) {
-  state.formData[e.target.name] = e.target.value;
+  commit();
 }
 
 function handleLoadMore() {
   state.visibleCount += 20;
 
-  render();
+  saveToLocalStorage("visibleCount", state.visibleCount);
+  commit();
 }
 
-function handleCategories() {
-  const categories = [...new Set(state.expenses.map((item) => item.category))];
+function renderCategoriesUI() {
+  const categories = [...new Set(state.expenses.map((e) => e.category))];
 
-  elements.selectCategory.innerHTML =
-    '<option value="">Select category</option>';
+  const select = elements.selectCategory;
+
+  const currentValue = select.value;
+
+  select.innerHTML = `<option value="">Select category</option>`;
 
   categories.forEach((cat) => {
     const option = createCategoryOptions(cat);
-
-    elements.selectCategory.appendChild(option);
+    select.appendChild(option);
   });
+
+  select.value = currentValue;
 }
 
 function handleCheckboxChange(id, onCheckboxChange) {
@@ -444,32 +451,44 @@ function handleCheckboxChange(id, onCheckboxChange) {
 
   saveToLocalStorage("expenses", state.expenses);
 
-  render();
+  commit();
 }
 
+window.addEventListener("resize", () => {
+  if (window.innerWidth >= 768) {
+    closeSidebar();
+  }
+});
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeSidebar();
+  }
+});
+
 elements.sidebarOverlay.addEventListener("click", () => {
-  elements.sidebar.classList.remove("active");
-  elements.sidebarOverlay.classList.add("hidden");
-  document.body.classList.remove("no-scroll");
+  closeSidebar();
 });
 
 elements.sidebar.addEventListener("click", () => {
-  elements.sidebar.classList.remove("active");
-  elements.sidebarOverlay.classList.add("hidden");
-  document.body.classList.remove("no-scroll");
+  closeSidebar();
 });
 
 elements.sidebarClosebtn.addEventListener("click", () => {
-  elements.sidebar.classList.remove("active");
-  elements.sidebarOverlay.classList.add("hidden");
-  ocument.body.classList.remove("no-scroll");
+  closeSidebar();
 });
 
 elements.menuBtn.addEventListener("click", () => {
   elements.sidebar.classList.add("active");
   elements.sidebarOverlay.classList.remove("hidden");
-  document.body.classList.add("no-scroll");
+  updateScrollLock();
 });
+
+function closeSidebar() {
+  elements.sidebar.classList.remove("active");
+  elements.sidebarOverlay.classList.add("hidden");
+  updateScrollLock();
+}
 
 elements.formOverlay.addEventListener("click", (e) => {
   if (e.target === elements.formOverlay) {
@@ -494,12 +513,16 @@ elements.clearSelected.addEventListener("click", () => {
   saveToLocalStorage("expenses", state.expenses);
   render();
 });
-elements.clearFiltered.addEventListener("click", clearFilters);
+
+elements.clearFiltered.addEventListener("click", () => {
+  initFilters();
+  commit();
+});
 
 elements.clearAll.addEventListener("click", () => {
   state.expenses = clearAllExpenses();
   saveToLocalStorage("expenses", state.expenses);
-  render();
+  commit();
 });
 
 elements.cardContainer.addEventListener("click", (e) => {
@@ -528,5 +551,4 @@ elements.cardContainer.addEventListener("change", (e) => {
   }
 });
 
-handleCategories();
 render();
